@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import com.l2o.planner.dto.Person;
 import com.l2o.planner.dto.PersonResponse;
-import com.l2o.planner.dto.TaskTypeResponse;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.common.mapper.TypeRef;

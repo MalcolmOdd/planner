@@ -7,6 +7,8 @@ import java.util.UUID;
 import com.l2o.planner.dto.Task;
 import com.l2o.planner.dto.TaskResponse;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,12 +20,17 @@ public class DbTask {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Nonnull
     @Column(name = "tasktype_id")
     private UUID tasktypeId;
+    @Nonnull
     @Column(name = "start_ts")
     private Instant start;
+    @Nonnull
     @Column(name = "end_ts")
     private Instant end;
+    @Nullable
+    public UUID personId;
 
     public DbTask() {
     }
@@ -34,7 +41,7 @@ public class DbTask {
 
     @Override
     public int hashCode() {
-	return Objects.hash(end, id, start, tasktypeId);
+	return Objects.hash(end, id, start, tasktypeId, personId);
     }
 
     @Override
@@ -47,7 +54,7 @@ public class DbTask {
 	    return false;
 	DbTask other = (DbTask) obj;
 	return Objects.equals(end, other.end) && Objects.equals(id, other.id) && Objects.equals(start, other.start)
-		&& Objects.equals(tasktypeId, other.tasktypeId);
+		&& Objects.equals(tasktypeId, other.tasktypeId) && Objects.equals(personId, other.personId);
     }
 
     public DbTask copyFrom(Task task) {
@@ -96,5 +103,13 @@ public class DbTask {
 
     public void setEnd(Instant end) {
 	this.end = end;
+    }
+
+    public UUID getPersonId() {
+	return personId;
+    }
+
+    public void setPersonId(UUID personId) {
+	this.personId = personId;
     }
 }

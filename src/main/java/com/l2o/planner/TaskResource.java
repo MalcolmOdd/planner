@@ -1,9 +1,9 @@
 package com.l2o.planner;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
+import com.l2o.planner.dto.ScheduleResponse;
 import com.l2o.planner.dto.Task;
 import com.l2o.planner.dto.TaskResponse;
 
@@ -25,14 +25,26 @@ public class TaskResource {
     }
 
     @GET
-    public Uni<List<TaskResponse>> getTasks(@QueryParam("from") Instant from, @QueryParam("to") Instant to) {
+    @Path("schedule")
+    public Uni<ScheduleResponse> getSchedule(@QueryParam("from") Instant from, @QueryParam("to") Instant to) {
 	return taskService.getTasks(from, to);
     }
 
     @POST
     public Uni<TaskResponse> create(Task task) {
-
 	return taskService.create(task);
+    }
+
+    @POST
+    @Path("assign/{taskId}/{personId}")
+    public Uni<Void> assign(@PathParam("taskId") UUID taskId, @PathParam("personId") UUID personId) {
+	return taskService.assign(taskId, personId);
+    }
+
+    @DELETE
+    @Path("unassign/{taskId}")
+    public Uni<Void> unassign(@PathParam("taskId") UUID taskId) {
+	return taskService.assign(taskId, null);
     }
 
     @GET

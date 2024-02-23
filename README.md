@@ -2,6 +2,8 @@
 
 Sample Quarkus REST service that stores schedules as tasks and assignments.
 
+Warning: This service is meant as a demo/tutorial so it does not require any HTTP authentication. Authentication could be configured in the load balancer or application gateway, or added through CDI annotation if needed. 
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
@@ -41,8 +43,6 @@ You can run your application in dev mode that enables live coding using:
 ```shell script
 ./mvnw compile quarkus:dev
 ```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
 ## Packaging and running the application
 
