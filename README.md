@@ -37,6 +37,11 @@ Implement DB entities, DTOs, services and resources.
 
 Implement unit tests. By default, Quarkus will detect all the SQL entities and create the tables on start (we can later move to Flyway once the schema is settled - the SQL statements can be logged by setting the `quarkus.hibernate-orm.log.sql`to true in the test profile properties).
 
+Flyway activation: By default, Flyway is deactivated in Quarkus unit tests and the schema is created from the annotated entities. To enable it in `application-test.properties`, first set `quarkus.hibernate-orm.database.generation` to `none` to prevent Quarkus table generation, then set `quarkus.flyway.migrate-at-start` to `true` to trigger Flyway schema creation/update on start.
+
+By default, Flyway will look at files in the resource (classpath) folder db/migration with names following the `V<version>__<description>.sql` pattern. It will keep track of the current state of the database and execute the script that are required to get to the latest schema, in versiopn order. In our case we use the yyyyMMdd_HHmm format to generate the version number, this generally prevent conflicts between concurrent PRs.
+
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:

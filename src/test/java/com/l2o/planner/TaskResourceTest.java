@@ -41,10 +41,22 @@ class TaskResourceTest {
 		.statusCode(200).extract().as(TaskResponse.class);
 	UUID id = createdTask.id;
 	Assertions.assertNotNull(id);
+	task.start = Instant.parse("2012-12-12T08:00:00Z");
+	task.end = Instant.parse("2012-12-12T16:00:00Z");
+	TaskResponse createdTask2 = given().body(task).contentType(ContentType.JSON).when().post("/v1/task").then()
+		.statusCode(200).extract().as(TaskResponse.class);
+	
 	given().when().post("/v1/task/assign/" + id + "/" + createdPerson.id).then().statusCode(204);
 	ScheduleResponse sr = given().param("from", "2012-12-12T00:00:00Z").param("to", "2012-12-21T02:00:00Z").get("/v1/task/schedule").then().statusCode(200).extract().as(ScheduleResponse.class);
 	PersonScheduleResponse psr = sr.personSchedules.stream().filter(ps -> ps.person.id.equals(createdPerson.id)).findAny().get();
 	Assertions.assertEquals(1, psr.tasks.size());
+	Assertions.assertTrue(sr.unassignedTasks.stream().anyMatch(t -> t.id.equals(createdTask2.id)));
+
+	given().when().delete("/v1/task/unassign/" + id).then().statusCode(204);
+	sr = given().param("from", "2012-12-12T00:00:00Z").param("to", "2012-12-21T02:00:00Z").get("/v1/task/schedule").then().statusCode(200).extract().as(ScheduleResponse.class);
+	Assertions.assertTrue(sr.unassignedTasks.stream().anyMatch(t -> t.id.equals(createdTask2.id)));
+	Assertions.assertTrue(sr.unassignedTasks.stream().anyMatch(t -> t.id.equals(id)));
+
 	given().when().delete("/v1/task/" + id).then().statusCode(204);
     }
 

@@ -27,7 +27,7 @@ public class TaskResource {
     @GET
     @Path("schedule")
     public Uni<ScheduleResponse> getSchedule(@QueryParam("from") Instant from, @QueryParam("to") Instant to) {
-	return taskService.getTasks(from, to);
+	return taskService.getSchedule(from, to);
     }
 
     @POST
@@ -44,7 +44,7 @@ public class TaskResource {
     @DELETE
     @Path("unassign/{taskId}")
     public Uni<Void> unassign(@PathParam("taskId") UUID taskId) {
-	return taskService.assign(taskId, null);
+	return taskService.unassign(taskId);
     }
 
     @GET

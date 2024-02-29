@@ -17,7 +17,7 @@ public class DbPerson {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
-
+    
     public DbPerson() {
     }
 

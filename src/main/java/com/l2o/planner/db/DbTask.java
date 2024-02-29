@@ -2,35 +2,36 @@ package com.l2o.planner.db;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.l2o.planner.dto.Task;
 import com.l2o.planner.dto.TaskResponse;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
-@Entity(name = "task")
+@Entity(name =  "task")
 public class DbTask {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Nonnull
-    @Column(name = "tasktype_id")
+    @Column(name = "tasktype_id", nullable = false)
     private UUID tasktypeId;
-    @Nonnull
+    @ManyToOne
+    @JoinColumn(name = "tasktype_id", insertable = false, updatable = false, nullable = false)
+    private DbTaskType taskType;
     @Column(name = "start_ts")
     private Instant start;
-    @Nonnull
     @Column(name = "end_ts")
     private Instant end;
-    @Nullable
-    public UUID personId;
+    @Column(name = "person_id", nullable = true, updatable = true)
+    private UUID personId;
 
     public DbTask() {
     }
@@ -70,6 +71,7 @@ public class DbTask {
 	taskResult.tasktypeId = tasktypeId;
 	taskResult.start = start;
 	taskResult.end = end;
+	taskResult.taskType = Optional.ofNullable(taskType).map(DbTaskType::toResponse).orElse(null);
 	return taskResult;
     }
 
@@ -104,11 +106,9 @@ public class DbTask {
     public void setEnd(Instant end) {
 	this.end = end;
     }
-
     public UUID getPersonId() {
 	return personId;
     }
-
     public void setPersonId(UUID personId) {
 	this.personId = personId;
     }

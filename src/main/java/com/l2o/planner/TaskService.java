@@ -29,38 +29,38 @@ public class TaskService {
     @Inject
     private Mutiny.SessionFactory sf;
 
-    public Uni<ScheduleResponse> getTasks(Instant from, Instant to) {
+    public Uni<ScheduleResponse> getSchedule(Instant from, Instant to) {
 	CriteriaQuery<DbTask> taskQuery = sf.getCriteriaBuilder().createQuery(DbTask.class);
 	taskQuery.select(taskQuery.from(DbTask.class));
 	CriteriaQuery<DbPerson> personQuery = sf.getCriteriaBuilder().createQuery(DbPerson.class);
 	personQuery.select(personQuery.from(DbPerson.class));
-
 	return sf
 		.withSession(session -> session.createQuery(taskQuery).getResultList()
-			.flatMap(tasks -> session.createQuery(personQuery).getResultList().map(persons -> toSchedule(tasks, persons))));
+			.flatMap(tasks -> session.createQuery(personQuery).getResultList()
+				.map(persons -> toSchedule(persons, tasks))));
     }
 
-    private ScheduleResponse toSchedule(List<DbTask> tasks, List<DbPerson> persons) {
+    private ScheduleResponse toSchedule(List<DbPerson> dbPersons, List<DbTask> dbTasks) {
 	Map<UUID, PersonScheduleResponse> schedules = new HashMap<UUID, PersonScheduleResponse>();
-	for (DbPerson dbPerson : persons) {
+	List<TaskResponse> unassignedTasks = new ArrayList<>();
+	for (DbPerson dbPerson : dbPersons) {
 	    PersonScheduleResponse psr = new PersonScheduleResponse();
 	    psr.person = dbPerson.toResponse();
 	    psr.tasks = new ArrayList<>();
 	    schedules.put(dbPerson.getId(), psr);
 	}
-	List<TaskResponse> unassignedTasks = new ArrayList<>();
-	for (DbTask dbTask : tasks) {
+	for (DbTask dbTask : dbTasks) {
 	    TaskResponse task = dbTask.toResponse();
-	    if (dbTask.personId == null) {
+	    if (dbTask.getPersonId() == null) {
 		unassignedTasks.add(task);
+		continue;
+	    }
+	    PersonScheduleResponse psr = schedules.get(dbTask.getPersonId());
+	    if (psr != null) {
+		psr.tasks.add(task);
 	    } else {
-		PersonScheduleResponse psr = schedules.get(dbTask.personId);
-		if (psr != null) {
-		    psr.tasks.add(task);
-		} else {
-		    LOG.warn("Inconsistent assignment for task {} - missing person {}", dbTask.getId(),
+		LOG.warn("Inconsistent assignment for task {} - missing person {}", dbTask.getId(),
 			    dbTask.getPersonId());
-		}
 	    }
 	}
 	ScheduleResponse scheduleResponse = new ScheduleResponse();
@@ -77,11 +77,20 @@ public class TaskService {
     public Uni<Void> assign(UUID taskId, UUID personId) {
 	return sf
 		.withTransaction(
-			session -> session.find(DbTask.class, taskId).map(dbTask -> dbTask.personId = personId))
+			session -> session.createNativeQuery("UPDATE task set person_id = :personId where id = :taskId")
+			.setParameter("taskId", taskId).setParameter("personId", personId).executeUpdate())
 		.replaceWithVoid();
     }
 
-    public Uni<TaskResponse> get(UUID id) {
+    public Uni<Void> unassign(UUID taskId) {
+	return sf
+		.withTransaction(
+			session -> session.createNativeQuery("UPDATE task set person_id = NULL where id = :taskId")
+			.setParameter("taskId", taskId).executeUpdate())
+		.replaceWithVoid();
+    }
+
+    public Uni<TaskResponse> get(UUID id) { 
 	return sf.withSession(session -> session.find(DbTask.class, id)).map(DbTask::toResponse);
     }
 
